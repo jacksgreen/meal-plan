@@ -17,6 +17,12 @@
 **All meals are vegetarian** - one meal for both of us.
 (Fiancé is vegetarian, Jack doesn't eat pork/shellfish - vegetarian satisfies both)
 
+## Likes & Dislikes
+| Person | Likes | Dislikes |
+|--------|-------|----------|
+| Jack | | |
+| Alex | | Halloumi |
+
 ## Planning Rules
 1. Sunday-Thursday: Quick meals (30 mins or less active cooking)
 2. Friday-Saturday: Can be more elaborate
