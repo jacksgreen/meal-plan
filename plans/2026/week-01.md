@@ -6,7 +6,7 @@
 |------|-----|------|-------|
 | 3/1 | Sat | Sweet Potato & Roasted Chickpeas | Airfryer sweet potato, oven-roasted spiced chickpeas |
 | 4/1 | Sun | Chickpea Curry + Rice | Make extra rice for Monday |
-| 5/1 | Mon | Veggie Tray Bake with Tofu | Use leftover rice |
+| 5/1 | Mon | Veggie Tray Bake with Tofu | Use leftover rice, [ginger garlic miso tahini dressing](https://minimalistbaker.com/quick-ginger-garlic-miso-tahini-dressing/) |
 | 6/1 | Tue | Tofu/Veg Leftovers & Bulgur | Use up tray bake leftovers |
 | 7/1 | Wed | Egg Wraps | Wraps, eggs, cheese, tomatoes, kale/greens |
 | 8/1 | Thu | Lentil Pasta | Quick weeknight meal |
