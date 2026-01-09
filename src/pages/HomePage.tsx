@@ -12,18 +12,69 @@ function Skeleton({ className = '' }: { className?: string }) {
 // Loading skeleton
 function HomePageSkeleton() {
   return (
-    <div className="animate-fade-in">
-      <div className="flex items-center justify-between mb-6">
-        <Skeleton className="h-6 w-32" />
-        <Skeleton className="h-8 w-20" />
+    <div className="flex flex-col flex-1 animate-fade-in">
+      {/* Header skeleton */}
+      <div className="flex items-center justify-between gap-4 mb-4 md:mb-6">
+        <div>
+          <Skeleton className="h-6 md:h-7 w-24 mb-1.5" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-9 w-9 rounded-lg" />
+          <Skeleton className="h-9 w-[60px] rounded-lg" />
+          <Skeleton className="h-9 w-9 rounded-lg" />
+        </div>
       </div>
-      <div className="flex gap-4 overflow-hidden">
+
+      {/* Carousel skeleton */}
+      <div className="flex-1 flex items-stretch gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6">
+        {/* Spacer to center middle card */}
+        <div className="shrink-0 w-[calc(50vw-140px-8px-20px)] md:w-[calc(50vw-180px-12px-24px)] lg:w-[calc(50vw-210px-12px-24px)]" />
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="card p-6 min-w-[280px]">
-            <Skeleton className="h-5 w-24 mb-2" />
-            <Skeleton className="h-6 w-40 mb-3" />
-            <Skeleton className="h-4 w-full" />
+          <div
+            key={i}
+            className={`card flex flex-col shrink-0 w-[280px] p-5 md:w-[360px] md:p-6 lg:w-[420px] lg:p-7 ${
+              i === 1 ? 'shadow-md' : 'opacity-60'
+            }`}
+          >
+            {/* Day header */}
+            <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
+              <div>
+                <Skeleton className="h-5 md:h-6 w-20 mb-1.5" />
+                <Skeleton className="h-4 w-12" />
+              </div>
+              {i === 1 && <Skeleton className="h-5 w-12 rounded-full" />}
+            </div>
+
+            {/* Meal content */}
+            <div className="flex-1 flex flex-col">
+              <Skeleton className="h-6 md:h-7 w-4/5 mb-2" />
+              <Skeleton className="h-4 w-full mb-1" />
+              <Skeleton className="h-4 w-3/4 mb-3" />
+
+              {/* Tags & time */}
+              <div className="flex items-center gap-2 mt-auto pt-3">
+                <Skeleton className="h-6 w-14 rounded-md" />
+                <Skeleton className="h-5 w-12 rounded-full" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+
+              {/* Recipe button */}
+              {i === 1 && <Skeleton className="h-10 w-full md:w-32 mt-4 rounded-lg" />}
+            </div>
           </div>
+        ))}
+        {/* Trailing spacer */}
+        <div className="shrink-0 w-[calc(50vw-140px-8px-20px)] md:w-[calc(50vw-180px-12px-24px)] lg:w-[calc(50vw-210px-12px-24px)]" />
+      </div>
+
+      {/* Dots indicator skeleton */}
+      <div className="flex justify-center gap-1.5 pt-2 mt-auto">
+        {[...Array(7)].map((_, i) => (
+          <div
+            key={i}
+            className={`h-2 rounded-full bg-muted ${i === 3 ? 'w-4' : 'w-2'}`}
+          />
         ))}
       </div>
     </div>
