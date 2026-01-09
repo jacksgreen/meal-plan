@@ -11,6 +11,15 @@ function Skeleton({ className = '' }: { className?: string }) {
 
 // Loading skeleton
 function HomePageSkeleton() {
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const centerCardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (centerCardRef.current) {
+      centerCardRef.current.scrollIntoView({ inline: 'center', behavior: 'instant' });
+    }
+  }, []);
+
   return (
     <div className="flex flex-col flex-1 animate-fade-in">
       {/* Header skeleton */}
@@ -27,12 +36,16 @@ function HomePageSkeleton() {
       </div>
 
       {/* Carousel skeleton */}
-      <div className="flex-1 flex items-stretch gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6">
-        {/* Spacer to center middle card: 50vw - padding - card - gap - halfCard */}
-        <div className="shrink-0 w-[calc(50vw-20px-280px-16px-140px)] md:w-[calc(50vw-24px-360px-24px-180px)] lg:w-[calc(50vw-24px-420px-24px-210px)]" />
+      <div
+        ref={carouselRef}
+        className="flex-1 flex items-stretch gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6"
+      >
+        {/* Leading spacer - same as real carousel */}
+        <div className="shrink-0 w-[calc(50vw-20px-140px)] md:w-[calc(50vw-24px-180px)] lg:w-[calc(50vw-24px-210px)]" />
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
+            ref={i === 1 ? centerCardRef : null}
             className={`card flex flex-col shrink-0 w-[280px] p-5 md:w-[360px] md:p-6 lg:w-[420px] lg:p-7 ${
               i === 1 ? 'shadow-md' : 'opacity-60'
             }`}
@@ -64,8 +77,8 @@ function HomePageSkeleton() {
             </div>
           </div>
         ))}
-        {/* Trailing spacer */}
-        <div className="shrink-0 w-[calc(50vw-20px-280px-16px-140px)] md:w-[calc(50vw-24px-360px-24px-180px)] lg:w-[calc(50vw-24px-420px-24px-210px)]" />
+        {/* Trailing spacer - same as real carousel */}
+        <div className="shrink-0 w-[calc(50vw-20px-140px)] md:w-[calc(50vw-24px-180px)] lg:w-[calc(50vw-24px-210px)]" />
       </div>
 
       {/* Dots indicator skeleton */}
@@ -204,6 +217,7 @@ export function HomePage() {
   const todayStr = new Date().toISOString().split('T')[0];
   const [centerIndex, setCenterIndex] = useState(3); // Start with today in center (index 3 of 7)
   const [snapEnabled, setSnapEnabled] = useState(false);
+  const [carouselReady, setCarouselReady] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
   const isProgrammaticScroll = useRef(false);
@@ -240,17 +254,19 @@ export function HomePage() {
         const container = carouselRef.current;
         if (!container) return;
         const cards = container.children;
-        if (cards[centerIndex]) {
-          const card = cards[centerIndex] as HTMLElement;
+        // +1 to account for leading spacer div
+        if (cards[centerIndex + 1]) {
+          const card = cards[centerIndex + 1] as HTMLElement;
           isProgrammaticScroll.current = true;
 
           if (isInitialMount.current) {
             // Initial mount: use scrollIntoView for reliable centering
             card.scrollIntoView({ inline: 'center', behavior: 'instant' });
             isInitialMount.current = false;
-            // Enable snap after scroll completes
+            // Enable snap and show carousel after scroll completes
             setTimeout(() => {
               setSnapEnabled(true);
+              setCarouselReady(true);
               isProgrammaticScroll.current = false;
             }, 50);
           } else {
@@ -289,7 +305,9 @@ export function HomePage() {
         let closestIndex = 0;
         let closestDistance = Infinity;
 
-        Array.from(container.children).forEach((child, index) => {
+        // Skip first child (spacer) and last child (spacer)
+        const children = Array.from(container.children).slice(1, -1);
+        children.forEach((child, index) => {
           const cardRect = child.getBoundingClientRect();
           const cardCenter = cardRect.left + cardRect.width / 2;
           const distance = Math.abs(containerCenter - cardCenter);
@@ -388,8 +406,10 @@ export function HomePage() {
       {/* Carousel - all screen sizes */}
       <div
         ref={carouselRef}
-        className={`flex-1 flex items-stretch gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6 ${snapEnabled ? 'snap-x snap-mandatory' : ''}`}
+        className={`flex-1 flex items-stretch gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6 transition-opacity duration-150 ${snapEnabled ? 'snap-x snap-mandatory' : ''} ${carouselReady ? 'opacity-100' : 'opacity-0'}`}
       >
+        {/* Leading spacer - matches skeleton */}
+        <div className="shrink-0 w-[calc(50vw-20px-140px)] md:w-[calc(50vw-24px-180px)] lg:w-[calc(50vw-24px-210px)]" />
         {daysWithMeals.map((day, index) => (
           <div
             key={day.dateStr}
@@ -403,6 +423,8 @@ export function HomePage() {
             />
           </div>
         ))}
+        {/* Trailing spacer - matches skeleton */}
+        <div className="shrink-0 w-[calc(50vw-20px-140px)] md:w-[calc(50vw-24px-180px)] lg:w-[calc(50vw-24px-210px)]" />
       </div>
 
       {/* Dots indicator */}
