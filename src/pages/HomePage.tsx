@@ -231,7 +231,7 @@ export function HomePage() {
 
       // Debounce to wait for scroll to settle
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
+      scrollTimeout = window.setTimeout(() => {
         const containerRect = container.getBoundingClientRect();
         const containerCenter = containerRect.left + containerRect.width / 2;
 
