@@ -28,8 +28,8 @@ function HomePageSkeleton() {
 
       {/* Carousel skeleton */}
       <div className="flex-1 flex items-stretch gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6">
-        {/* Spacer to center middle card */}
-        <div className="shrink-0 w-[calc(50vw-140px-8px-20px)] md:w-[calc(50vw-180px-12px-24px)] lg:w-[calc(50vw-210px-12px-24px)]" />
+        {/* Spacer to center middle card: 50vw - padding - card - gap - halfCard */}
+        <div className="shrink-0 w-[calc(50vw-20px-280px-16px-140px)] md:w-[calc(50vw-24px-360px-24px-180px)] lg:w-[calc(50vw-24px-420px-24px-210px)]" />
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
@@ -65,7 +65,7 @@ function HomePageSkeleton() {
           </div>
         ))}
         {/* Trailing spacer */}
-        <div className="shrink-0 w-[calc(50vw-140px-8px-20px)] md:w-[calc(50vw-180px-12px-24px)] lg:w-[calc(50vw-210px-12px-24px)]" />
+        <div className="shrink-0 w-[calc(50vw-20px-280px-16px-140px)] md:w-[calc(50vw-24px-360px-24px-180px)] lg:w-[calc(50vw-24px-420px-24px-210px)]" />
       </div>
 
       {/* Dots indicator skeleton */}
