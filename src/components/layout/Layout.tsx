@@ -25,8 +25,8 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-forest rounded-xl flex items-center justify-center">
-                <ChefHat className="w-5 h-5 text-white" strokeWidth={1.5} />
+              <div className="w-9 h-9 relative flex items-center justify-center">
+                 <img src="/logo.png" alt="Meal Plan Logo" className="w-full h-full object-contain" />
               </div>
               <span className="text-lg font-medium text-charcoal">Meal Plan</span>
             </Link>
@@ -56,8 +56,8 @@ export function Layout({ children }: LayoutProps) {
       <header className="md:hidden nav-header sticky top-0 z-50">
         <div className="px-5 py-4">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-forest rounded-lg flex items-center justify-center">
-              <ChefHat className="w-4 h-4 text-white" strokeWidth={1.5} />
+            <div className="w-8 h-8 relative flex items-center justify-center">
+              <img src="/logo.png" alt="Meal Plan Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-base font-medium text-charcoal">Meal Plan</span>
           </Link>
