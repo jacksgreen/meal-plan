@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, BookOpen, ChefHat, Sparkles } from 'lucide-react';
+import { Calendar, BookOpen, ChefHat } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,7 +13,6 @@ export function Layout({ children }: LayoutProps) {
     { path: '/', label: 'This Week', icon: Calendar },
     { path: '/plans', label: 'Past Plans', icon: BookOpen },
     { path: '/recipes', label: 'Recipes', icon: ChefHat },
-    { path: '/to-try', label: 'To Try', icon: Sparkles },
   ];
 
   const isActive = (path: string) => location.pathname === path;

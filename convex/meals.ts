@@ -82,3 +82,29 @@ export const create = mutation({
     return mealId;
   },
 });
+
+// Update an existing meal
+export const update = mutation({
+  args: {
+    mealId: v.id("meals"),
+    name: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    recipeUrl: v.optional(v.string()),
+    estimatedTime: v.optional(v.number()),
+    tags: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const { mealId, ...updates } = args;
+
+    // Filter out undefined values
+    const cleanUpdates: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(updates)) {
+      if (value !== undefined) {
+        cleanUpdates[key] = value;
+      }
+    }
+
+    await ctx.db.patch(mealId, cleanUpdates);
+    return mealId;
+  },
+});

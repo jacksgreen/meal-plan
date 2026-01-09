@@ -1,8 +1,13 @@
-import { Clock, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, ExternalLink, ChevronLeft, ChevronRight, CalendarDays, Sparkles, Utensils, Loader2 } from 'lucide-react';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { format, parseISO, isToday, isTomorrow, isYesterday, isPast, addDays } from 'date-fns';
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+
+// Initial range - reasonable defaults
+const INITIAL_DAYS_BEFORE = 14;
+const INITIAL_DAYS_AFTER = 30;
+const LOAD_MORE_DAYS = 14;
 
 // Skeleton component
 function Skeleton({ className = '' }: { className?: string }) {
@@ -29,66 +34,43 @@ function HomePageSkeleton() {
           <Skeleton className="h-4 w-32" />
         </div>
         <div className="flex items-center gap-2">
-          <Skeleton className="h-9 w-9 rounded-lg" />
+          <Skeleton className="h-9 w-9 rounded-full" />
           <Skeleton className="h-9 w-[60px] rounded-lg" />
-          <Skeleton className="h-9 w-9 rounded-lg" />
+          <Skeleton className="h-9 w-9 rounded-full" />
         </div>
       </div>
 
       {/* Carousel skeleton */}
       <div
         ref={carouselRef}
-        className="flex-1 flex items-stretch gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6"
+        className="flex-1 flex items-stretch gap-4 md:gap-5 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6"
       >
-        {/* Leading spacer - same as real carousel */}
-        <div className="shrink-0 w-[calc(50vw-20px-140px)] md:w-[calc(50vw-24px-180px)] lg:w-[calc(50vw-24px-210px)]" />
-        {[...Array(3)].map((_, i) => (
+        <div className="shrink-0 w-[calc(50vw-20px-150px)] md:w-[calc(50vw-24px-175px)] lg:w-[calc(50vw-24px-200px)]" />
+        {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            ref={i === 1 ? centerCardRef : null}
-            className={`card flex flex-col shrink-0 w-[280px] p-5 md:w-[360px] md:p-6 lg:w-[420px] lg:p-7 ${
-              i === 1 ? 'shadow-md' : 'opacity-60'
+            ref={i === 2 ? centerCardRef : null}
+            className={`card flex flex-col shrink-0 w-[300px] p-5 md:w-[350px] md:p-6 lg:w-[400px] lg:p-7 ${
+              i === 2 ? 'ring-2 ring-forest/20' : 'opacity-50'
             }`}
           >
-            {/* Day header */}
-            <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
+            <div className="flex items-center justify-between gap-2 mb-4">
               <div>
                 <Skeleton className="h-5 md:h-6 w-20 mb-1.5" />
                 <Skeleton className="h-4 w-12" />
               </div>
-              {i === 1 && <Skeleton className="h-5 w-12 rounded-full" />}
+              {i === 2 && <Skeleton className="h-6 w-14 rounded-full" />}
             </div>
-
-            {/* Meal content */}
-            <div className="flex-1 flex flex-col">
-              <Skeleton className="h-6 md:h-7 w-4/5 mb-2" />
-              <Skeleton className="h-4 w-full mb-1" />
-              <Skeleton className="h-4 w-3/4 mb-3" />
-
-              {/* Tags & time */}
-              <div className="flex items-center gap-2 mt-auto pt-3">
-                <Skeleton className="h-6 w-14 rounded-md" />
-                <Skeleton className="h-5 w-12 rounded-full" />
-                <Skeleton className="h-5 w-16 rounded-full" />
-              </div>
-
-              {/* Recipe button */}
-              {i === 1 && <Skeleton className="h-10 w-full md:w-32 mt-4 rounded-lg" />}
+            <Skeleton className="h-7 w-4/5 mb-3" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-3/4 mb-4" />
+            <div className="flex items-center gap-2 mt-auto">
+              <Skeleton className="h-6 w-14 rounded-md" />
+              <Skeleton className="h-6 w-16 rounded-full" />
             </div>
           </div>
         ))}
-        {/* Trailing spacer - same as real carousel */}
-        <div className="shrink-0 w-[calc(50vw-20px-140px)] md:w-[calc(50vw-24px-180px)] lg:w-[calc(50vw-24px-210px)]" />
-      </div>
-
-      {/* Dots indicator skeleton */}
-      <div className="flex justify-center gap-1.5 pt-2 mt-auto">
-        {[...Array(7)].map((_, i) => (
-          <div
-            key={i}
-            className={`h-2 rounded-full bg-muted ${i === 3 ? 'w-4' : 'w-2'}`}
-          />
-        ))}
+        <div className="shrink-0 w-[calc(50vw-20px-150px)] md:w-[calc(50vw-24px-175px)] lg:w-[calc(50vw-24px-200px)]" />
       </div>
     </div>
   );
@@ -103,16 +85,53 @@ function getDayLabel(dateStr: string): string {
   return format(date, 'EEEE');
 }
 
+// Empty state component for unplanned days
+function EmptyDayState({ isPastDay }: { isPastDay: boolean }) {
+  if (isPastDay) {
+    return (
+      <div className="empty-day-state">
+        <div className="empty-day-icon empty-day-icon--past">
+          <CalendarDays className="w-6 h-6" />
+        </div>
+        <p className="empty-day-title">No meal recorded</p>
+        <p className="empty-day-subtitle">This day has passed</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="empty-day-state">
+      <div className="empty-day-icon">
+        <Sparkles className="w-6 h-6" />
+      </div>
+      <p className="empty-day-title">Not planned yet</p>
+      <p className="empty-day-subtitle">A blank canvas for something delicious</p>
+    </div>
+  );
+}
+
+// Month indicator pill
+function MonthIndicator({ date, isNewMonth }: { date: Date; isNewMonth: boolean }) {
+  if (!isNewMonth) return null;
+  return (
+    <div className="month-indicator">
+      {format(date, 'MMMM')}
+    </div>
+  );
+}
+
 // Day card component
 function DayCard({
   date,
   meal,
   isCenter,
+  isNewMonth,
   onClick
 }: {
   date: Date;
   meal: any | null;
   isCenter: boolean;
+  isNewMonth: boolean;
   onClick?: () => void;
 }) {
   const dateStr = format(date, 'yyyy-MM-dd');
@@ -124,60 +143,61 @@ function DayCard({
     <div
       onClick={onClick}
       className={`
-        card flex flex-col cursor-pointer
-        shrink-0 w-[280px] p-5
-        md:w-[360px] md:p-6
-        lg:w-[420px] lg:p-7
-        transition-all duration-300
-        ${isCenter
-          ? 'shadow-md'
-          : 'opacity-60 hover:opacity-90'
-        }
-        ${isCurrentDay ? 'ring-2 ring-forest/20 ring-offset-2 ring-offset-sage' : ''}
+        day-card
+        ${isCenter ? 'day-card--center' : 'day-card--side'}
+        ${isCurrentDay ? 'day-card--today' : ''}
+        ${isPastDay ? 'day-card--past' : ''}
+        ${!meal ? 'day-card--empty' : ''}
       `}
     >
+      {/* Month indicator for new months */}
+      <MonthIndicator date={date} isNewMonth={isNewMonth && !isCenter} />
+
       {/* Day header */}
-      <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
-        <div className="min-w-0">
-          <p className={`font-medium text-base md:text-lg leading-tight ${isCurrentDay ? 'text-forest' : 'text-charcoal'}`}>
+      <div className="day-card-header">
+        <div className="day-card-date-group">
+          <p className={`day-card-label ${isCurrentDay ? 'day-card-label--today' : ''}`}>
             {dayLabel}
           </p>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="day-card-date">
             {format(date, 'MMM d')}
           </p>
         </div>
         {isCurrentDay && (
-          <span className="badge-today shrink-0">today</span>
+          <span className="today-pill">
+            <span className="today-pill-dot" />
+            now
+          </span>
         )}
       </div>
 
-      {/* Meal content - grows to fill space */}
-      <div className="flex-1 flex flex-col">
+      {/* Meal content */}
+      <div className="day-card-body">
         {meal ? (
           <>
-            <h3 className={`font-medium text-lg md:text-xl leading-snug mb-2 ${isPastDay ? 'text-muted-foreground' : 'text-charcoal'}`}>
+            <h3 className={`day-card-meal-name ${isPastDay ? 'day-card-meal-name--past' : ''}`}>
               {meal.name}
             </h3>
 
             {meal.notes && (
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2 md:line-clamp-3">
+              <p className="day-card-notes">
                 {meal.notes}
               </p>
             )}
 
-            {/* Tags & time - always visible */}
-            <div className="flex flex-wrap items-center gap-2 mt-auto pt-3">
-              {meal.estimatedTime && (
-                <div className="time-indicator text-sm">
-                  <Clock className="w-4 h-4" strokeWidth={1.5} />
+            {/* Tags & time */}
+            <div className="day-card-meta">
+              {meal.estimatedTime > 0 && (
+                <div className="time-chip">
+                  <Clock className="w-3.5 h-3.5" />
                   <span>{meal.estimatedTime}m</span>
                 </div>
               )}
 
               {meal.tags && meal.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="day-card-tags">
                   {meal.tags.slice(0, 3).map((tag: string) => (
-                    <span key={tag} className="tag text-xs">{tag}</span>
+                    <span key={tag} className="meal-tag">{tag}</span>
                   ))}
                 </div>
               )}
@@ -189,81 +209,166 @@ function DayCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="btn-primary inline-flex items-center justify-center gap-2 mt-4 text-sm py-2.5 px-4 w-full md:w-auto"
+                className="recipe-button"
               >
+                <Utensils className="w-4 h-4" />
                 View recipe
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
           </>
         ) : (
-          <div className="flex-1 flex flex-col justify-center">
-            <p className="text-muted-foreground italic text-base">
-              {isPastDay ? 'No meal recorded' : 'Nothing planned'}
-            </p>
-            {!isPastDay && (
-              <p className="text-sm text-muted-foreground/70 mt-1">
-                That's okay.
-              </p>
-            )}
-          </div>
+          <EmptyDayState isPastDay={isPastDay} />
         )}
       </div>
     </div>
   );
 }
 
+type DayData = { date: Date; dateStr: string; meal: any | null; isNewMonth: boolean };
+
 export function HomePage() {
-  const todayStr = new Date().toISOString().split('T')[0];
-  const [centerIndex, setCenterIndex] = useState(3); // Start with today in center (index 3 of 7)
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+  // Query range state
+  const [daysBefore, setDaysBefore] = useState(INITIAL_DAYS_BEFORE);
+  const [daysAfter, setDaysAfter] = useState(INITIAL_DAYS_AFTER);
+
+  // UI state
+  const [centerIndex, setCenterIndex] = useState(INITIAL_DAYS_BEFORE); // Start at today
   const [snapEnabled, setSnapEnabled] = useState(false);
   const [carouselReady, setCarouselReady] = useState(false);
+  const [loadingPast, setLoadingPast] = useState(false);
+  const [loadingFuture, setLoadingFuture] = useState(false);
+
+  // Data state - this persists while loading more
+  const [daysWithMeals, setDaysWithMeals] = useState<DayData[] | null>(null);
+
   const carouselRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
   const isProgrammaticScroll = useRef(false);
+  const lastCenterIndexRef = useRef(centerIndex);
+  const intentionalNavigation = useRef(false);
+  const isLoadingMore = useRef(false);
+  const lastLoadedRange = useRef({ before: 0, after: 0 });
+  const lastMealsData = useRef<any>(null);
 
-  // Get meals around today
-  const mealsData = useQuery(api.meals.getMealsAroundDate, {
+  // Query meals for current range
+  const mealsDataRaw = useQuery(api.meals.getMealsAroundDate, {
     centerDate: todayStr,
-    daysBefore: 3,
-    daysAfter: 3,
+    daysBefore,
+    daysAfter,
   });
 
-  // Generate all dates in range
-  const daysWithMeals = useMemo(() => {
-    if (!mealsData) return null;
+  // Keep last valid data to prevent flashing when query params change
+  // Update ref in effect to follow React rules
+  useEffect(() => {
+    if (mealsDataRaw) {
+      lastMealsData.current = mealsDataRaw;
+    }
+  }, [mealsDataRaw]);
 
-    const days: Array<{ date: Date; dateStr: string; meal: any | null }> = [];
+  const mealsData = mealsDataRaw ?? lastMealsData.current;
+
+  // Build days array helper
+  const buildDaysArray = useCallback((before: number, after: number, meals: any[]) => {
     const today = parseISO(todayStr);
+    const days: DayData[] = [];
+    let lastMonth: number | null = null;
 
-    // Generate 7 days: 3 before + today + 3 after
-    for (let i = -3; i <= 3; i++) {
+    for (let i = -before; i <= after; i++) {
       const date = addDays(today, i);
       const dateStr = format(date, 'yyyy-MM-dd');
-      const meal = mealsData.meals.find(m => m.date === dateStr) || null;
-      days.push({ date, dateStr, meal });
+      const meal = meals.find((m: any) => m.date === dateStr) || null;
+      const currentMonth = date.getMonth();
+      const isNewMonth = lastMonth !== null && lastMonth !== currentMonth;
+      lastMonth = currentMonth;
+
+      days.push({ date, dateStr, meal, isNewMonth });
     }
 
     return days;
-  }, [mealsData, todayStr]);
+  }, [todayStr]);
 
-  // Scroll to center card on mount and when centerIndex changes
+  // Update days when data arrives
+  useEffect(() => {
+    if (!mealsData) return;
+
+    // Check if this is new data (range changed)
+    const rangeChanged =
+      lastLoadedRange.current.before !== daysBefore ||
+      lastLoadedRange.current.after !== daysAfter;
+
+    const newDays = buildDaysArray(daysBefore, daysAfter, mealsData.meals);
+
+    if (!daysWithMeals || !rangeChanged) {
+      // First load or same range (just data update) - replace
+      setDaysWithMeals(newDays);
+    } else {
+      // Range expanded - merge, keeping scroll position stable
+      const wasLoadingPast = loadingPast;
+      const addedDays = wasLoadingPast
+        ? daysBefore - lastLoadedRange.current.before
+        : daysAfter - lastLoadedRange.current.after;
+
+      setDaysWithMeals(newDays);
+
+      // Adjust centerIndex if we added days to the past
+      if (wasLoadingPast && addedDays > 0) {
+        setCenterIndex(prev => prev + addedDays);
+        lastCenterIndexRef.current = lastCenterIndexRef.current + addedDays;
+      }
+    }
+
+    lastLoadedRange.current = { before: daysBefore, after: daysAfter };
+    setLoadingPast(false);
+    setLoadingFuture(false);
+    isLoadingMore.current = false;
+  }, [mealsData, daysBefore, daysAfter, buildDaysArray]);
+
+  // Find today's index
+  const todayIndex = useMemo(() => {
+    if (!daysWithMeals) return INITIAL_DAYS_BEFORE;
+    return daysWithMeals.findIndex(d => d.dateStr === todayStr);
+  }, [daysWithMeals, todayStr]);
+
+  // Load more past days
+  const loadMorePast = useCallback(() => {
+    if (isLoadingMore.current || loadingPast) return;
+    isLoadingMore.current = true;
+    setLoadingPast(true);
+    setDaysBefore(prev => prev + LOAD_MORE_DAYS);
+  }, [loadingPast]);
+
+  // Load more future days
+  const loadMoreFuture = useCallback(() => {
+    if (isLoadingMore.current || loadingFuture) return;
+    isLoadingMore.current = true;
+    setLoadingFuture(true);
+    setDaysAfter(prev => prev + LOAD_MORE_DAYS);
+  }, [loadingFuture]);
+
+  // Scroll to center card on mount and when centerIndex changes intentionally
   useEffect(() => {
     if (carouselRef.current && daysWithMeals) {
+      const centerIndexChanged = centerIndex !== lastCenterIndexRef.current;
+      lastCenterIndexRef.current = centerIndex;
+
+      // Only scroll on initial mount or intentional navigation (button clicks)
+      const shouldScroll = isInitialMount.current || intentionalNavigation.current;
+      if (!shouldScroll) return;
+
       const scrollToCenter = () => {
         const container = carouselRef.current;
         if (!container) return;
-        const cards = container.children;
-        // +1 to account for leading spacer div
-        if (cards[centerIndex + 1]) {
-          const card = cards[centerIndex + 1] as HTMLElement;
+        const cards = container.querySelectorAll('.day-card-wrapper');
+        if (cards[centerIndex]) {
+          const card = cards[centerIndex] as HTMLElement;
           isProgrammaticScroll.current = true;
 
           if (isInitialMount.current) {
-            // Initial mount: use scrollIntoView for reliable centering
             card.scrollIntoView({ inline: 'center', behavior: 'instant' });
             isInitialMount.current = false;
-            // Enable snap and show carousel after scroll completes
             setTimeout(() => {
               setSnapEnabled(true);
               setCarouselReady(true);
@@ -271,15 +376,14 @@ export function HomePage() {
             }, 50);
           } else {
             card.scrollIntoView({ inline: 'center', behavior: 'smooth' });
-            // Reset after smooth scroll completes
             setTimeout(() => {
               isProgrammaticScroll.current = false;
+              intentionalNavigation.current = false;
             }, 350);
           }
         }
       };
 
-      // Use double RAF to ensure DOM has painted with updated card sizes
       requestAnimationFrame(() => {
         requestAnimationFrame(scrollToCenter);
       });
@@ -292,22 +396,24 @@ export function HomePage() {
     if (!container || !daysWithMeals) return;
 
     let scrollTimeout: number;
+    const totalDays = daysWithMeals.length;
 
     const handleScroll = () => {
+      // Skip if we're in a programmatic scroll
       if (isProgrammaticScroll.current) return;
 
-      // Debounce to wait for scroll to settle
       clearTimeout(scrollTimeout);
       scrollTimeout = window.setTimeout(() => {
+        if (isProgrammaticScroll.current) return;
+
         const containerRect = container.getBoundingClientRect();
         const containerCenter = containerRect.left + containerRect.width / 2;
 
         let closestIndex = 0;
         let closestDistance = Infinity;
 
-        // Skip first child (spacer) and last child (spacer)
-        const children = Array.from(container.children).slice(1, -1);
-        children.forEach((child, index) => {
+        const cards = container.querySelectorAll('.day-card-wrapper');
+        cards.forEach((child, index) => {
           const cardRect = child.getBoundingClientRect();
           const cardCenter = cardRect.left + cardRect.width / 2;
           const distance = Math.abs(containerCenter - cardCenter);
@@ -318,10 +424,18 @@ export function HomePage() {
           }
         });
 
+        // Update centerIndex to match what user is viewing
         if (closestIndex !== centerIndex) {
           setCenterIndex(closestIndex);
         }
-      }, 50);
+
+        // Check if we need to load more days
+        if (closestIndex <= 3 && !isLoadingMore.current) {
+          loadMorePast();
+        } else if (closestIndex >= totalDays - 4 && !isLoadingMore.current) {
+          loadMoreFuture();
+        }
+      }, 150);
     };
 
     container.addEventListener('scroll', handleScroll, { passive: true });
@@ -329,120 +443,155 @@ export function HomePage() {
       container.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [daysWithMeals, centerIndex]);
+  }, [daysWithMeals, centerIndex, loadMorePast, loadMoreFuture]);
 
-  // Navigation
-  const goBack = () => {
+  // Navigation with debounce protection
+  const goBack = useCallback(() => {
+    if (isProgrammaticScroll.current || isLoadingMore.current) return;
     if (centerIndex > 0) {
-      setCenterIndex(centerIndex - 1);
+      intentionalNavigation.current = true;
+      setCenterIndex(prev => Math.max(0, prev - 1));
     }
-  };
+    if (centerIndex <= 3) {
+      loadMorePast();
+    }
+  }, [centerIndex, loadMorePast]);
 
-  const goForward = () => {
+  const goForward = useCallback(() => {
+    if (isProgrammaticScroll.current || isLoadingMore.current) return;
     if (daysWithMeals && centerIndex < daysWithMeals.length - 1) {
-      setCenterIndex(centerIndex + 1);
+      intentionalNavigation.current = true;
+      setCenterIndex(prev => Math.min((daysWithMeals?.length || 1) - 1, prev + 1));
     }
-  };
+    if (daysWithMeals && centerIndex >= daysWithMeals.length - 4) {
+      loadMoreFuture();
+    }
+  }, [centerIndex, daysWithMeals, loadMoreFuture]);
 
-  const goToToday = () => {
-    setCenterIndex(3); // Today is at index 3
-  };
+  const goToToday = useCallback(() => {
+    if (isProgrammaticScroll.current) return;
+    intentionalNavigation.current = true;
+    setCenterIndex(todayIndex);
+  }, [todayIndex]);
 
-  const isViewingToday = centerIndex === 3;
+  const isViewingToday = centerIndex === todayIndex;
 
-  // Loading
-  if (!mealsData || !daysWithMeals) {
+  // Only show skeleton on initial load (before we have any data)
+  // Once daysWithMeals is set, keep showing it even while loading more
+  if (!daysWithMeals) {
     return <HomePageSkeleton />;
   }
 
   const currentDay = daysWithMeals[centerIndex];
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="home-page">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 mb-4 md:mb-6 animate-fade-in-up opacity-0">
-        <div>
-          <p className="text-lg md:text-xl font-medium text-charcoal">
+      <div className="home-header animate-fade-in-up">
+        <div className="home-header-left">
+          <h1 className="home-header-day">
             {getDayLabel(currentDay.dateStr)}
-          </p>
-          <p className="text-sm text-muted-foreground">
+          </h1>
+          <p className="home-header-date">
             {format(currentDay.date, 'MMMM d, yyyy')}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="home-header-nav">
           <button
             onClick={goBack}
-            disabled={centerIndex === 0}
-            className="week-nav-btn"
+            className="nav-arrow"
             aria-label="Previous day"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
 
           <button
             onClick={goToToday}
             disabled={isViewingToday}
-            className={`text-sm py-1.5 px-3 min-w-[60px] rounded-lg transition-colors ${
-              isViewingToday
-                ? 'text-muted-foreground/40 cursor-default'
-                : 'text-charcoal hover:bg-muted'
-            }`}
+            className={`today-button ${isViewingToday ? 'today-button--disabled' : ''}`}
           >
             Today
           </button>
 
           <button
             onClick={goForward}
-            disabled={centerIndex === daysWithMeals.length - 1}
-            className="week-nav-btn"
+            className="nav-arrow"
             aria-label="Next day"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* Carousel - all screen sizes */}
-      <div
-        ref={carouselRef}
-        className={`flex-1 flex items-stretch gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6 transition-opacity duration-150 ${snapEnabled ? 'snap-x snap-mandatory' : ''} ${carouselReady ? 'opacity-100' : 'opacity-0'}`}
-      >
-        {/* Leading spacer - matches skeleton */}
-        <div className="shrink-0 w-[calc(50vw-20px-140px)] md:w-[calc(50vw-24px-180px)] lg:w-[calc(50vw-24px-210px)]" />
-        {daysWithMeals.map((day, index) => (
-          <div
-            key={day.dateStr}
-            className="snap-center flex"
-          >
-            <DayCard
-              date={day.date}
-              meal={day.meal}
-              isCenter={index === centerIndex}
-              onClick={() => setCenterIndex(index)}
-            />
+      {/* Carousel with fade edges */}
+      <div className="carousel-container">
+        {/* Loading indicator - past */}
+        {loadingPast && (
+          <div className="carousel-loader carousel-loader--left">
+            <Loader2 className="w-5 h-5 animate-spin" />
           </div>
-        ))}
-        {/* Trailing spacer - matches skeleton */}
-        <div className="shrink-0 w-[calc(50vw-20px-140px)] md:w-[calc(50vw-24px-180px)] lg:w-[calc(50vw-24px-210px)]" />
+        )}
+
+        <div
+          ref={carouselRef}
+          className={`carousel hide-scrollbar ${snapEnabled ? 'carousel--snap' : ''} ${carouselReady ? 'carousel--ready' : ''}`}
+        >
+          {/* Leading spacer */}
+          <div className="carousel-spacer" />
+
+          {daysWithMeals.map((day, index) => (
+            <div
+              key={day.dateStr}
+              className="day-card-wrapper snap-center"
+            >
+              <DayCard
+                date={day.date}
+                meal={day.meal}
+                isCenter={index === centerIndex}
+                isNewMonth={day.isNewMonth}
+                onClick={() => {
+                  if (isProgrammaticScroll.current || isLoadingMore.current) return;
+                  if (index !== centerIndex) {
+                    intentionalNavigation.current = true;
+                    setCenterIndex(index);
+                  }
+                }}
+              />
+            </div>
+          ))}
+
+          {/* Trailing spacer */}
+          <div className="carousel-spacer" />
+        </div>
+
+        {/* Loading indicator - future */}
+        {loadingFuture && (
+          <div className="carousel-loader carousel-loader--right">
+            <Loader2 className="w-5 h-5 animate-spin" />
+          </div>
+        )}
       </div>
 
-      {/* Dots indicator */}
-      <div className="flex justify-center gap-1.5 pt-2 mt-auto">
-        {daysWithMeals.map((day, index) => (
-          <button
-            key={day.dateStr}
-            onClick={() => setCenterIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-200 ${
-              index === centerIndex
-                ? 'bg-forest w-4'
-                : isToday(day.date)
-                ? 'bg-gold'
-                : 'bg-muted hover:bg-muted-foreground/30'
-            }`}
-            aria-label={`Go to ${getDayLabel(day.dateStr)}`}
-          />
-        ))}
+      {/* Progress dots - show subset around current */}
+      <div className="carousel-dots">
+        {daysWithMeals.slice(Math.max(0, centerIndex - 3), Math.min(daysWithMeals.length, centerIndex + 4)).map((day, i) => {
+          const actualIndex = Math.max(0, centerIndex - 3) + i;
+          return (
+            <button
+              key={day.dateStr}
+              onClick={() => setCenterIndex(actualIndex)}
+              className={`carousel-dot ${
+                actualIndex === centerIndex
+                  ? 'carousel-dot--active'
+                  : actualIndex === todayIndex
+                  ? 'carousel-dot--today'
+                  : ''
+              }`}
+              aria-label={`Go to ${getDayLabel(day.dateStr)}`}
+            />
+          );
+        })}
       </div>
     </div>
   );
