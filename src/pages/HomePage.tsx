@@ -39,15 +39,17 @@ function getDayLabel(dateStr: string): string {
   return format(date, 'EEEE');
 }
 
-// Day card in carousel
+// Day card component
 function DayCard({
   date,
   meal,
-  isCenter
+  isCenter,
+  onClick
 }: {
   date: Date;
   meal: any | null;
   isCenter: boolean;
+  onClick?: () => void;
 }) {
   const dateStr = format(date, 'yyyy-MM-dd');
   const dayLabel = getDayLabel(dateStr);
@@ -56,79 +58,93 @@ function DayCard({
 
   return (
     <div
-      className={`card shrink-0 w-[280px] md:w-[340px] p-5 transition-opacity duration-300 ${
-        isCenter ? '' : 'opacity-50 hover:opacity-70'
-      } ${isCurrentDay && isCenter ? 'ring-2 ring-forest/30' : ''}`}
+      onClick={onClick}
+      className={`
+        card flex flex-col cursor-pointer
+        shrink-0 w-[280px] p-5
+        md:w-[360px] md:p-6
+        lg:w-[420px] lg:p-7
+        transition-all duration-300
+        ${isCenter
+          ? 'shadow-md'
+          : 'opacity-60 hover:opacity-90'
+        }
+        ${isCurrentDay ? 'ring-2 ring-forest/20 ring-offset-2 ring-offset-sage' : ''}
+      `}
     >
       {/* Day header */}
-      <div className="flex items-center gap-2 mb-3">
-        <div>
-          <p className={`font-medium text-base ${isCurrentDay ? 'text-forest' : 'text-charcoal'}`}>
+      <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
+        <div className="min-w-0">
+          <p className={`font-medium text-base md:text-lg leading-tight ${isCurrentDay ? 'text-forest' : 'text-charcoal'}`}>
             {dayLabel}
           </p>
-          <p className="text-sm text-muted-foreground">
-            {format(date, 'MMMM d')}
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {format(date, 'MMM d')}
           </p>
         </div>
         {isCurrentDay && (
-          <span className="badge-today text-xs ml-auto">today</span>
+          <span className="badge-today shrink-0">today</span>
         )}
       </div>
 
-      {/* Meal content */}
-      {meal ? (
-        <div>
-          <h3 className={`font-medium text-lg mb-2 ${isPastDay ? 'text-muted-foreground' : 'text-charcoal'}`}>
-            {meal.name}
-          </h3>
+      {/* Meal content - grows to fill space */}
+      <div className="flex-1 flex flex-col">
+        {meal ? (
+          <>
+            <h3 className={`font-medium text-lg md:text-xl leading-snug mb-2 ${isPastDay ? 'text-muted-foreground' : 'text-charcoal'}`}>
+              {meal.name}
+            </h3>
 
-          {meal.notes && (
-            <p className={`text-sm text-muted-foreground mb-3 transition-opacity duration-300 ${isCenter ? 'opacity-100' : 'opacity-0 h-0 mb-0 overflow-hidden'}`}>
-              {meal.notes}
-            </p>
-          )}
-
-          <div className="flex flex-wrap items-center gap-2">
-            {meal.estimatedTime && (
-              <div className="time-indicator text-sm">
-                <Clock className="w-4 h-4" strokeWidth={1.5} />
-                <span>{meal.estimatedTime}m</span>
-              </div>
+            {meal.notes && (
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2 md:line-clamp-3">
+                {meal.notes}
+              </p>
             )}
 
-            {meal.tags && meal.tags.length > 0 && (
-              <div className={`flex flex-wrap gap-1.5 transition-opacity duration-300 ${isCenter ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
-                {meal.tags.slice(0, 3).map((tag: string) => (
-                  <span key={tag} className="tag text-xs">{tag}</span>
-                ))}
-              </div>
+            {/* Tags & time - always visible */}
+            <div className="flex flex-wrap items-center gap-2 mt-auto pt-3">
+              {meal.estimatedTime && (
+                <div className="time-indicator text-sm">
+                  <Clock className="w-4 h-4" strokeWidth={1.5} />
+                  <span>{meal.estimatedTime}m</span>
+                </div>
+              )}
+
+              {meal.tags && meal.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {meal.tags.slice(0, 3).map((tag: string) => (
+                    <span key={tag} className="tag text-xs">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {meal.recipeUrl && (
+              <a
+                href={meal.recipeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="btn-primary inline-flex items-center justify-center gap-2 mt-4 text-sm py-2.5 px-4 w-full md:w-auto"
+              >
+                View recipe
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col justify-center">
+            <p className="text-muted-foreground italic text-base">
+              {isPastDay ? 'No meal recorded' : 'Nothing planned'}
+            </p>
+            {!isPastDay && (
+              <p className="text-sm text-muted-foreground/70 mt-1">
+                That's okay.
+              </p>
             )}
           </div>
-
-          {meal.recipeUrl && (
-            <a
-              href={meal.recipeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`btn-primary inline-flex items-center gap-2 mt-4 text-sm py-2 px-4 transition-opacity duration-300 ${isCenter ? 'opacity-100' : 'opacity-0 h-0 mt-0 overflow-hidden'}`}
-            >
-              View recipe
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          )}
-        </div>
-      ) : (
-        <div>
-          <p className="text-muted-foreground italic text-base">
-            {isPastDay ? 'No meal recorded' : 'Nothing planned'}
-          </p>
-          {isCenter && !isPastDay && (
-            <p className="text-sm text-muted-foreground mt-2">
-              That's okay.
-            </p>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -139,6 +155,7 @@ export function HomePage() {
   const [snapEnabled, setSnapEnabled] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
+  const isProgrammaticScroll = useRef(false);
 
   // Get meals around today
   const mealsData = useQuery(api.meals.getMealsAroundDate, {
@@ -174,15 +191,23 @@ export function HomePage() {
         const cards = container.children;
         if (cards[centerIndex]) {
           const card = cards[centerIndex] as HTMLElement;
+          isProgrammaticScroll.current = true;
 
           if (isInitialMount.current) {
             // Initial mount: use scrollIntoView for reliable centering
             card.scrollIntoView({ inline: 'center', behavior: 'instant' });
             isInitialMount.current = false;
             // Enable snap after scroll completes
-            setTimeout(() => setSnapEnabled(true), 50);
+            setTimeout(() => {
+              setSnapEnabled(true);
+              isProgrammaticScroll.current = false;
+            }, 50);
           } else {
             card.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+            // Reset after smooth scroll completes
+            setTimeout(() => {
+              isProgrammaticScroll.current = false;
+            }, 350);
           }
         }
       };
@@ -193,6 +218,49 @@ export function HomePage() {
       });
     }
   }, [centerIndex, daysWithMeals]);
+
+  // Sync centerIndex when user manually scrolls
+  useEffect(() => {
+    const container = carouselRef.current;
+    if (!container || !daysWithMeals) return;
+
+    let scrollTimeout: number;
+
+    const handleScroll = () => {
+      if (isProgrammaticScroll.current) return;
+
+      // Debounce to wait for scroll to settle
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const containerRect = container.getBoundingClientRect();
+        const containerCenter = containerRect.left + containerRect.width / 2;
+
+        let closestIndex = 0;
+        let closestDistance = Infinity;
+
+        Array.from(container.children).forEach((child, index) => {
+          const cardRect = child.getBoundingClientRect();
+          const cardCenter = cardRect.left + cardRect.width / 2;
+          const distance = Math.abs(containerCenter - cardCenter);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+          }
+        });
+
+        if (closestIndex !== centerIndex) {
+          setCenterIndex(closestIndex);
+        }
+      }, 50);
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [daysWithMeals, centerIndex]);
 
   // Navigation
   const goBack = () => {
@@ -221,11 +289,11 @@ export function HomePage() {
   const currentDay = daysWithMeals[centerIndex];
 
   return (
-    <div>
+    <div className="flex flex-col flex-1">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 mb-6 animate-fade-in-up opacity-0">
+      <div className="flex items-center justify-between gap-4 mb-4 md:mb-6 animate-fade-in-up opacity-0">
         <div>
-          <p className="text-lg font-medium text-charcoal">
+          <p className="text-lg md:text-xl font-medium text-charcoal">
             {getDayLabel(currentDay.dateStr)}
           </p>
           <p className="text-sm text-muted-foreground">
@@ -266,28 +334,28 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* Carousel */}
+      {/* Carousel - all screen sizes */}
       <div
         ref={carouselRef}
-        className={`flex gap-4 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6 ${snapEnabled ? 'snap-x snap-mandatory' : ''}`}
+        className={`flex-1 flex items-stretch gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 md:-mx-6 md:px-6 ${snapEnabled ? 'snap-x snap-mandatory' : ''}`}
       >
         {daysWithMeals.map((day, index) => (
           <div
             key={day.dateStr}
-            className="snap-center"
-            onClick={() => setCenterIndex(index)}
+            className="snap-center flex"
           >
             <DayCard
               date={day.date}
               meal={day.meal}
               isCenter={index === centerIndex}
+              onClick={() => setCenterIndex(index)}
             />
           </div>
         ))}
       </div>
 
       {/* Dots indicator */}
-      <div className="flex justify-center gap-1.5 mt-4">
+      <div className="flex justify-center gap-1.5 pt-2 mt-auto">
         {daysWithMeals.map((day, index) => (
           <button
             key={day.dateStr}

@@ -1,4 +1,4 @@
-import { Sparkles, Star, ExternalLink, Bookmark } from 'lucide-react';
+import { Star, ExternalLink, Bookmark } from 'lucide-react';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 

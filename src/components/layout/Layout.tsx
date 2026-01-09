@@ -19,10 +19,10 @@ export function Layout({ children }: LayoutProps) {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background flex flex-col">
       {/* Desktop Header */}
       <header className="hidden md:block nav-header sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-6 py-4">
+        <div className="max-w-4xl xl:max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3">
@@ -66,7 +66,7 @@ export function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-5 md:px-6 py-8 md:py-10 pb-28 md:pb-10">
+      <main className="flex-1 flex flex-col max-w-4xl xl:max-w-6xl mx-auto w-full px-5 md:px-6 py-6 md:py-10 pb-24 md:pb-10">
         {children}
       </main>
 

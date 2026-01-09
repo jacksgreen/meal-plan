@@ -67,7 +67,7 @@ body {
 #root {
   overflow-x: hidden;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
 }
 
@@ -394,6 +394,12 @@ a, p, span {
 }
 
 .badge-today {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 100px;
   background: var(--color-gold-light);
   color: #92610e;
 }
