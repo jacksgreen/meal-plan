@@ -351,7 +351,6 @@ export function HomePage() {
   // Scroll to center card on mount and when centerIndex changes intentionally
   useEffect(() => {
     if (carouselRef.current && daysWithMeals) {
-      const centerIndexChanged = centerIndex !== lastCenterIndexRef.current;
       lastCenterIndexRef.current = centerIndex;
 
       // Only scroll on initial mount or intentional navigation (button clicks)
