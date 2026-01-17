@@ -60,8 +60,18 @@ async function main() {
 
   console.log(`Adding meals to Week ${input.weekNumber} (${plan.startDate} - ${plan.endDate})`);
 
-  // Add each meal
+  // Get existing meals for this plan
+  const existingMeals = await client.query(api.meals.getMealsByPlan, { weeklyPlanId: plan._id });
+
+  // Add each meal (replacing any existing meal on the same date)
   for (const meal of input.meals) {
+    // Check for existing meals on this date and remove them
+    const mealsOnDate = existingMeals.filter((m: any) => m.date === meal.date);
+    for (const existing of mealsOnDate) {
+      await client.mutation(api.meals.remove, { mealId: existing._id });
+      console.log(`  ${meal.dayOfWeek}: Replacing "${existing.name}"`);
+    }
+
     await client.mutation(api.meals.create, {
       weeklyPlanId: plan._id,
       date: meal.date,
@@ -75,7 +85,7 @@ async function main() {
     console.log(`  ${meal.dayOfWeek}: ${meal.name}`);
   }
 
-  console.log("\nMeals added successfully!");
+  console.log("\nMeals saved!");
 }
 
 main();
