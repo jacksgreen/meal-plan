@@ -108,3 +108,14 @@ export const update = mutation({
     return mealId;
   },
 });
+
+// Delete a meal
+export const remove = mutation({
+  args: {
+    mealId: v.id("meals"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.mealId);
+    return args.mealId;
+  },
+});
