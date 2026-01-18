@@ -190,19 +190,20 @@ function DayCard({
       {/* Day header */}
       <div className="day-card-header">
         <div className="day-card-date-group">
-          <p className={`day-card-label ${isCurrentDay ? 'day-card-label--today' : ''}`}>
-            {dayLabel}
-          </p>
+          <div className="day-card-label-row">
+            <p className={`day-card-label ${isCurrentDay ? 'day-card-label--today' : ''}`}>
+              {dayLabel}
+            </p>
+            {isCurrentDay && (
+              <span className="today-indicator" aria-label="Today">
+                <span className="today-indicator-dot" />
+              </span>
+            )}
+          </div>
           <p className="day-card-date">
             {format(date, 'MMM d')}
           </p>
         </div>
-        {isCurrentDay && (
-          <span className="today-pill">
-            <span className="today-pill-dot" />
-            now
-          </span>
-        )}
       </div>
 
       {/* Meal content */}

@@ -170,6 +170,7 @@ export function MealForm({ isOpen, onClose, date, meal, onDelete }: MealFormProp
           name="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onClear={() => setName('')}
           placeholder="What's for dinner?"
           autoFocus
         />
@@ -179,6 +180,7 @@ export function MealForm({ isOpen, onClose, date, meal, onDelete }: MealFormProp
           name="notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
+          onClear={() => setNotes('')}
           placeholder="Any special instructions or variations?"
           rows={3}
         />
@@ -189,6 +191,7 @@ export function MealForm({ isOpen, onClose, date, meal, onDelete }: MealFormProp
           type="url"
           value={recipeUrl}
           onChange={(e) => setRecipeUrl(e.target.value)}
+          onClear={() => setRecipeUrl('')}
           placeholder="https://..."
         />
 
@@ -198,6 +201,7 @@ export function MealForm({ isOpen, onClose, date, meal, onDelete }: MealFormProp
           type="number"
           value={estimatedTime}
           onChange={(e) => setEstimatedTime(e.target.value)}
+          onClear={() => setEstimatedTime('')}
           placeholder="30"
           min="0"
         />
