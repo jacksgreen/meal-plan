@@ -1,6 +1,9 @@
-import { ChefHat, ExternalLink, Star, Check } from 'lucide-react';
-import { useQuery } from 'convex/react';
+import { ChefHat, ExternalLink, Star, Check, Plus, Pencil, Trash2 } from 'lucide-react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import { useState } from 'react';
+import { RecipeForm, DeleteConfirmModal } from '../components/forms';
+import type { Id } from '../../convex/_generated/dataModel';
 
 // Skeleton component
 function Skeleton({ className = '' }: { className?: string }) {
@@ -41,13 +44,59 @@ function EmptyState() {
   );
 }
 
+type RecipeData = {
+  _id: Id<"recipes">;
+  name: string;
+  source: string;
+  sourceUrl?: string;
+  status: 'to-try' | 'tried';
+  priority?: 'high' | 'someday';
+  notes?: string;
+  usedWith: string[];
+  tags: string[];
+};
+
 // Recipe card
-function RecipeCard({ recipe, index }: { recipe: any; index: number }) {
+function RecipeCard({
+  recipe,
+  index,
+  onEdit,
+  onDelete
+}: {
+  recipe: RecipeData;
+  index: number;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const isTried = recipe.status === 'tried';
   const isPriority = recipe.priority === 'high';
 
   return (
-    <div className={`recipe-card animate-fade-in-up opacity-0 stagger-${Math.min(index + 1, 7)}`}>
+    <div className={`recipe-card card-editable animate-fade-in-up opacity-0 stagger-${Math.min(index + 1, 7)}`}>
+      {/* Edit/Delete overlay */}
+      <div className="card-edit-overlay flex gap-1">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+          className="icon-button icon-button--sm"
+          aria-label="Edit recipe"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="icon-button icon-button--sm icon-button--danger"
+          aria-label="Delete recipe"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
@@ -97,29 +146,60 @@ function RecipeCard({ recipe, index }: { recipe: any; index: number }) {
 export function RecipesPage() {
   const triedRecipes = useQuery(api.recipes.listTried);
   const toTryRecipes = useQuery(api.recipes.listToTry);
+  const deleteRecipe = useMutation(api.recipes.remove);
+
+  // Modal state
+  const [showRecipeForm, setShowRecipeForm] = useState(false);
+  const [editingRecipe, setEditingRecipe] = useState<RecipeData | null>(null);
+  const [deletingRecipe, setDeletingRecipe] = useState<RecipeData | null>(null);
 
   if (triedRecipes === undefined || toTryRecipes === undefined) {
     return <RecipesPageSkeleton />;
   }
 
   // Combine all recipes into one list, prioritizing to-try (high priority first, then someday, then tried)
-  const allRecipes = [
+  const allRecipes: RecipeData[] = [
     ...toTryRecipes.highPriority,
     ...toTryRecipes.someday,
     ...triedRecipes,
   ];
 
+  const handleEdit = (recipe: RecipeData) => {
+    setEditingRecipe(recipe);
+    setShowRecipeForm(true);
+  };
+
+  const handleDelete = (recipe: RecipeData) => {
+    setDeletingRecipe(recipe);
+  };
+
+  const handleCloseForm = () => {
+    setShowRecipeForm(false);
+    setEditingRecipe(null);
+  };
+
   return (
     <div>
       {/* Header */}
       <div className="mb-8 animate-fade-in-up opacity-0">
-        <h1 className="text-2xl font-medium text-charcoal mb-2">Recipes</h1>
-        <p className="text-muted-foreground">
-          {allRecipes.length === 0
-            ? 'Your recipe collection.'
-            : `${allRecipes.length} ${allRecipes.length === 1 ? 'recipe' : 'recipes'} saved`
-          }
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-medium text-charcoal mb-2">Recipes</h1>
+            <p className="text-muted-foreground">
+              {allRecipes.length === 0
+                ? 'Your recipe collection.'
+                : `${allRecipes.length} ${allRecipes.length === 1 ? 'recipe' : 'recipes'} saved`
+              }
+            </p>
+          </div>
+          <button
+            onClick={() => setShowRecipeForm(true)}
+            className="add-button"
+          >
+            <Plus className="w-4 h-4" />
+            Add Recipe
+          </button>
+        </div>
       </div>
 
       {/* Recipes list */}
@@ -128,10 +208,41 @@ export function RecipesPage() {
       ) : (
         <div className="space-y-3">
           {allRecipes.map((recipe, index) => (
-            <RecipeCard key={recipe._id} recipe={recipe} index={index} />
+            <RecipeCard
+              key={recipe._id}
+              recipe={recipe}
+              index={index}
+              onEdit={() => handleEdit(recipe)}
+              onDelete={() => handleDelete(recipe)}
+            />
           ))}
         </div>
       )}
+
+      {/* Recipe Form Modal */}
+      <RecipeForm
+        isOpen={showRecipeForm}
+        onClose={handleCloseForm}
+        recipe={editingRecipe}
+        onDelete={editingRecipe ? () => {
+          setDeletingRecipe(editingRecipe);
+          handleCloseForm();
+        } : undefined}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingRecipe}
+        onClose={() => setDeletingRecipe(null)}
+        onConfirm={async () => {
+          if (deletingRecipe) {
+            await deleteRecipe({ recipeId: deletingRecipe._id });
+          }
+        }}
+        title="Delete Recipe"
+        message="Are you sure you want to delete this recipe? This action cannot be undone."
+        itemName={deletingRecipe?.name}
+      />
     </div>
   );
 }

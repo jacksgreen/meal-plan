@@ -1,8 +1,10 @@
-import { Clock, ExternalLink, ChevronLeft, ChevronRight, CalendarDays, Sparkles, Utensils, Loader2 } from 'lucide-react';
-import { useQuery } from 'convex/react';
+import { Clock, ExternalLink, ChevronLeft, ChevronRight, CalendarDays, Sparkles, Utensils, Loader2, Plus, Pencil } from 'lucide-react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { format, parseISO, isToday, isTomorrow, isYesterday, isPast, addDays } from 'date-fns';
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { MealForm, DeleteConfirmModal } from '../components/forms';
+import type { Id } from '../../convex/_generated/dataModel';
 
 // Initial range - reasonable defaults
 const INITIAL_DAYS_BEFORE = 14;
@@ -86,7 +88,7 @@ function getDayLabel(dateStr: string): string {
 }
 
 // Empty state component for unplanned days
-function EmptyDayState({ isPastDay }: { isPastDay: boolean }) {
+function EmptyDayState({ isPastDay, onAddMeal }: { isPastDay: boolean; onAddMeal?: () => void }) {
   if (isPastDay) {
     return (
       <div className="empty-day-state">
@@ -106,6 +108,18 @@ function EmptyDayState({ isPastDay }: { isPastDay: boolean }) {
       </div>
       <p className="empty-day-title">Not planned yet</p>
       <p className="empty-day-subtitle">A blank canvas for something delicious</p>
+      {onAddMeal && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddMeal();
+          }}
+          className="add-button mt-4"
+        >
+          <Plus className="w-4 h-4" />
+          Add meal
+        </button>
+      )}
     </div>
   );
 }
@@ -126,13 +140,17 @@ function DayCard({
   meal,
   isCenter,
   isNewMonth,
-  onClick
+  onClick,
+  onEditMeal,
+  onAddMeal
 }: {
   date: Date;
   meal: any | null;
   isCenter: boolean;
   isNewMonth: boolean;
   onClick?: () => void;
+  onEditMeal?: () => void;
+  onAddMeal?: () => void;
 }) {
   const dateStr = format(date, 'yyyy-MM-dd');
   const dayLabel = getDayLabel(dateStr);
@@ -143,7 +161,7 @@ function DayCard({
     <div
       onClick={onClick}
       className={`
-        day-card
+        day-card card-editable
         ${isCenter ? 'day-card--center' : 'day-card--side'}
         ${isCurrentDay ? 'day-card--today' : ''}
         ${isPastDay ? 'day-card--past' : ''}
@@ -152,6 +170,22 @@ function DayCard({
     >
       {/* Month indicator for new months */}
       <MonthIndicator date={date} isNewMonth={isNewMonth && !isCenter} />
+
+      {/* Edit button overlay for existing meals */}
+      {meal && onEditMeal && (
+        <div className="card-edit-overlay">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditMeal();
+            }}
+            className="icon-button"
+            aria-label="Edit meal"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Day header */}
       <div className="day-card-header">
@@ -218,14 +252,31 @@ function DayCard({
             )}
           </>
         ) : (
-          <EmptyDayState isPastDay={isPastDay} />
+          <EmptyDayState isPastDay={isPastDay} onAddMeal={onAddMeal} />
         )}
       </div>
     </div>
   );
 }
 
-type DayData = { date: Date; dateStr: string; meal: any | null; isNewMonth: boolean };
+type MealData = {
+  _id: Id<"meals">;
+  weeklyPlanId: Id<"weeklyPlans">;
+  date: string;
+  dayOfWeek: string;
+  name: string;
+  notes?: string;
+  recipeUrl?: string;
+  estimatedTime?: number;
+  tags: string[];
+};
+
+type DayData = { date: Date; dateStr: string; meal: MealData | null; isNewMonth: boolean };
+
+type EditingState = {
+  date: string;
+  meal: MealData | null;
+} | null;
 
 export function HomePage() {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
@@ -241,8 +292,15 @@ export function HomePage() {
   const [loadingPast, setLoadingPast] = useState(false);
   const [loadingFuture, setLoadingFuture] = useState(false);
 
+  // Modal state
+  const [editingState, setEditingState] = useState<EditingState>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   // Data state - this persists while loading more
   const [daysWithMeals, setDaysWithMeals] = useState<DayData[] | null>(null);
+
+  // Mutation for deleting meals
+  const deleteMeal = useMutation(api.meals.remove);
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
@@ -556,6 +614,8 @@ export function HomePage() {
                     setCenterIndex(index);
                   }
                 }}
+                onEditMeal={day.meal ? () => setEditingState({ date: day.dateStr, meal: day.meal }) : undefined}
+                onAddMeal={!day.meal ? () => setEditingState({ date: day.dateStr, meal: null }) : undefined}
               />
             </div>
           ))}
@@ -592,6 +652,30 @@ export function HomePage() {
           );
         })}
       </div>
+
+      {/* Meal Form Modal */}
+      <MealForm
+        isOpen={!!editingState}
+        onClose={() => setEditingState(null)}
+        date={editingState?.date || todayStr}
+        meal={editingState?.meal}
+        onDelete={editingState?.meal ? () => setShowDeleteConfirm(true) : undefined}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={async () => {
+          if (editingState?.meal) {
+            await deleteMeal({ mealId: editingState.meal._id });
+            setEditingState(null);
+          }
+        }}
+        title="Delete Meal"
+        message="Are you sure you want to delete this meal? This action cannot be undone."
+        itemName={editingState?.meal?.name}
+      />
     </div>
   );
 }
