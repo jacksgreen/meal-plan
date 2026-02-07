@@ -53,7 +53,7 @@ function HomePageSkeleton() {
             key={i}
             ref={i === 2 ? centerCardRef : null}
             className={`card flex flex-col shrink-0 w-[300px] p-5 md:w-[350px] md:p-6 lg:w-[400px] lg:p-7 ${
-              i === 2 ? 'ring-2 ring-forest/20' : 'opacity-50'
+              i === 2 ? 'border-stone' : 'opacity-50'
             }`}
           >
             <div className="flex items-center justify-between gap-2 mb-4">
@@ -195,8 +195,8 @@ function DayCard({
               {dayLabel}
             </p>
             {isCurrentDay && (
-              <span className="today-indicator" aria-label="Today">
-                <span className="today-indicator-dot" />
+              <span className="today-badge" aria-label="Today">
+                TODAY
               </span>
             )}
           </div>

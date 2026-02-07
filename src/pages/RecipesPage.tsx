@@ -97,10 +97,10 @@ function RecipeCard({
         </button>
       </div>
 
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 pr-16">
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="text-base font-medium text-charcoal">{recipe.name}</h3>
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <h3 className="text-base font-medium text-ink">{recipe.name}</h3>
             {isTried ? (
               <span className="tried-badge">
                 <Check className="w-3 h-3" />
@@ -123,11 +123,11 @@ function RecipeCard({
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           ) : recipe.source ? (
-            <p className="text-sm text-muted-foreground">{recipe.source}</p>
+            <p className="text-sm text-stone">{recipe.source}</p>
           ) : null}
 
           {recipe.notes && (
-            <p className="text-sm text-muted-foreground mt-2">{recipe.notes}</p>
+            <p className="text-sm text-stone mt-2">{recipe.notes}</p>
           )}
 
           {recipe.tags && recipe.tags.length > 0 && (
@@ -184,8 +184,8 @@ export function RecipesPage() {
       <div className="mb-8 animate-fade-in-up opacity-0">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-medium text-charcoal mb-2">Recipes</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-medium text-ink mb-2">Recipes</h1>
+            <p className="text-stone">
               {allRecipes.length === 0
                 ? 'Your recipe collection.'
                 : `${allRecipes.length} ${allRecipes.length === 1 ? 'recipe' : 'recipes'} saved`

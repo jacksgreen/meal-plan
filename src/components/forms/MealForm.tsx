@@ -154,9 +154,9 @@ export function MealForm({ isOpen, onClose, date, meal, onDelete }: MealFormProp
       }
     >
       <form onSubmit={handleSubmit}>
-        <div className="mb-5 pb-4 border-b border-border">
-          <p className="text-sm text-muted-foreground">{dayLabel}</p>
-          <p className="font-medium text-charcoal">{dateLabel}</p>
+        <div className="mb-5 pb-4 border-b border-linen">
+          <p className="text-sm text-stone">{dayLabel}</p>
+          <p className="font-medium text-ink">{dateLabel}</p>
         </div>
 
         {error && (

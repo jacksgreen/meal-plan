@@ -36,8 +36,8 @@ function EmptyState() {
   return (
     <div className="animate-fade-in">
       <div className="mb-10">
-        <h1 className="text-2xl font-medium text-charcoal mb-2">Past Plans</h1>
-        <p className="text-muted-foreground">Your meal planning history will appear here.</p>
+        <h1 className="text-2xl font-medium text-ink mb-2">Past Plans</h1>
+        <p className="text-stone">Your meal planning history will appear here.</p>
       </div>
 
       <div className="card empty-state">
@@ -166,22 +166,22 @@ function PlanCard({
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-3 mb-1">
-                <h3 className="text-lg font-medium text-charcoal">
+                <h3 className="text-lg font-medium text-ink">
                   {format(parseISO(plan.startDate), 'MMM d')} - {format(parseISO(plan.endDate), 'MMM d, yyyy')}
                 </h3>
                 <StatusBadge status={plan.status} />
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-stone">
                 {plan.mealCount} {plan.mealCount === 1 ? 'meal' : 'meals'} planned
               </p>
             </div>
 
             <div
-              className={`flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center transition-transform duration-300 ${
+              className={`flex-shrink-0 w-8 h-8 rounded-full bg-ivory flex items-center justify-center transition-transform duration-300 ${
                 isExpanded ? 'rotate-180' : ''
               }`}
             >
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              <ChevronDown className="w-4 h-4 text-stone" />
             </div>
           </div>
         </button>
@@ -214,7 +214,7 @@ function MealsView({
       <div className="expandable-card-content pt-5">
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-sage-dark/50 rounded-xl p-4">
+            <div key={i} className="bg-ivory rounded-xl p-4">
               <Skeleton className="h-4 w-24 mb-2" />
               <Skeleton className="h-5 w-48" />
             </div>
@@ -230,22 +230,22 @@ function MealsView({
         {planData.meals.map((meal, index) => (
           <div
             key={meal._id}
-            className="bg-sage/50 hover:bg-sage rounded-xl p-4 transition-colors duration-200 animate-fade-in opacity-0 group"
+            className="border-b border-linen last:border-b-0 p-4 transition-colors duration-200 animate-fade-in opacity-0 group"
             style={{ animationDelay: `${index * 40}ms`, animationFillMode: 'forwards' }}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-charcoal">
+                  <span className="text-sm font-medium text-ink">
                     {format(parseISO(meal.date), 'EEEE')}
                   </span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-stone">
                     {format(parseISO(meal.date), 'MMM d')}
                   </span>
                 </div>
-                <h4 className="text-sm text-charcoal-light mb-1">{meal.name}</h4>
+                <h4 className="text-sm text-graphite mb-1">{meal.name}</h4>
                 {meal.notes && (
-                  <p className="text-xs text-muted-foreground">{meal.notes}</p>
+                  <p className="text-xs text-stone">{meal.notes}</p>
                 )}
               </div>
 
@@ -294,7 +294,7 @@ function MealsView({
       {/* Add meal button */}
       <button
         onClick={() => setEditingMeal({ date: planStartDate, meal: null })}
-        className="mt-4 w-full flex items-center justify-center gap-2 py-3 text-sm text-forest font-medium bg-leaf-light/50 hover:bg-leaf-light rounded-lg transition-colors"
+        className="mt-4 w-full flex items-center justify-center gap-2 py-3 text-sm text-copper font-medium border border-linen hover:bg-ivory rounded transition-colors"
       >
         <Plus className="w-4 h-4" />
         Add meal to this week
@@ -367,8 +367,8 @@ export function PlansPage() {
       <div className="mb-10 animate-fade-in-up opacity-0">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-medium text-charcoal mb-2">Past Plans</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-medium text-ink mb-2">Past Plans</h1>
+            <p className="text-stone">
               Browse your meal planning history. Find favorites to repeat.
             </p>
           </div>

@@ -114,12 +114,12 @@ export function PlanForm({ isOpen, onClose }: PlanFormProps) {
         />
 
         {weekInfo && (
-          <div className="mt-4 p-4 bg-sage rounded-lg">
-            <p className="text-sm text-muted-foreground mb-1">This will create a plan for:</p>
-            <p className="font-medium text-charcoal">
+          <div className="mt-4 p-4 bg-ivory border border-linen rounded">
+            <p className="text-sm text-stone mb-1">This will create a plan for:</p>
+            <p className="font-medium text-ink">
               Week {weekInfo.weekNumber}, {weekInfo.year}
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-stone">
               {weekInfo.startLabel} - {weekInfo.endLabel}
             </p>
           </div>

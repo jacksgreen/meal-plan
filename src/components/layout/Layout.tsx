@@ -10,25 +10,24 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'This Week', icon: Calendar },
-    { path: '/plans', label: 'Past Plans', icon: BookOpen },
-    { path: '/recipes', label: 'Recipes', icon: ChefHat },
+    { path: '/', label: 'This Week', shortLabel: 'Week', icon: Calendar },
+    { path: '/plans', label: 'Past Plans', shortLabel: 'Plans', icon: BookOpen },
+    { path: '/recipes', label: 'Recipes', shortLabel: 'Recipes', icon: ChefHat },
   ];
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col">
+    <div className="min-h-dvh bg-cream flex flex-col">
       {/* Desktop Header */}
       <header className="hidden md:block nav-header sticky top-0 z-50">
-        <div className="max-w-4xl xl:max-w-6xl mx-auto px-6 py-4">
+        <div className="max-w-4xl xl:max-w-6xl mx-auto px-8 py-4">
           <div className="flex items-center justify-between">
-            {/* Logo */}
+            {/* Wordmark */}
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-9 h-9 relative flex items-center justify-center">
-                 <img src="/logo.png" alt="Meal Plan Logo" className="w-full h-full object-contain" />
-              </div>
-              <span className="text-lg font-medium text-charcoal">Meal Plan</span>
+              <span className="text-xl text-ink" style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}>
+                Meal Plan
+              </span>
             </Link>
 
             {/* Navigation */}
@@ -42,8 +41,8 @@ export function Layout({ children }: LayoutProps) {
                     to={item.path}
                     className={`nav-link flex items-center gap-2 ${active ? 'active' : ''}`}
                   >
-                    <Icon className="w-[18px] h-[18px]" strokeWidth={1.5} />
-                    <span className="text-sm">{item.label}</span>
+                    <Icon className="w-4 h-4" strokeWidth={1.5} />
+                    <span>{item.label}</span>
                   </Link>
                 );
               })}
@@ -56,16 +55,15 @@ export function Layout({ children }: LayoutProps) {
       <header className="md:hidden nav-header sticky top-0 z-50">
         <div className="px-5 py-4">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 relative flex items-center justify-center">
-              <img src="/logo.png" alt="Meal Plan Logo" className="w-full h-full object-contain" />
-            </div>
-            <span className="text-base font-medium text-charcoal">Meal Plan</span>
+            <span className="text-lg text-ink" style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}>
+              Meal Plan
+            </span>
           </Link>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col max-w-4xl xl:max-w-6xl mx-auto w-full px-5 md:px-6 py-6 md:py-10 pb-24 md:pb-10">
+      <main className="flex-1 flex flex-col max-w-4xl xl:max-w-6xl mx-auto w-full px-5 md:px-8 py-6 md:py-10 pb-24 md:pb-10">
         {children}
       </main>
 
@@ -82,7 +80,7 @@ export function Layout({ children }: LayoutProps) {
                 className={`bottom-nav-item flex-1 ${active ? 'active' : ''}`}
               >
                 <Icon className="w-5 h-5" strokeWidth={1.5} />
-                <span>{item.label.split(' ').pop()}</span>
+                <span>{item.shortLabel}</span>
               </Link>
             );
           })}
