@@ -18,7 +18,7 @@ export function Layout({ children }: LayoutProps) {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-dvh bg-cream flex flex-col">
+    <div className="min-h-dvh bg-cream flex flex-col overflow-x-hidden">
       {/* Desktop Header */}
       <header className="hidden md:block nav-header sticky top-0 z-50">
         <div className="max-w-4xl xl:max-w-6xl mx-auto px-8 py-4">
@@ -63,7 +63,7 @@ export function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col max-w-4xl xl:max-w-6xl mx-auto w-full px-5 md:px-8 py-6 md:py-10 pb-24 md:pb-10">
+      <main className="flex-1 flex flex-col max-w-4xl xl:max-w-6xl mx-auto w-full px-5 md:px-8 py-6 md:py-10 pb-24 md:pb-10 min-h-0">
         {children}
       </main>
 
